@@ -1,12 +1,10 @@
-// Skyline Cargo — hand-in program (Node 22, standard library only).
-//
-// The game lives in this repository as plain static files: game/index.html
-// and the modules it loads, with no build step and no network request. This
-// program hands it in: it copies game/ and screenshots/ from beside this
-// file into /output and writes /output/dossier.json, the summary the judge
-// reads, with the vendored make.fun library. It runs twice in the grader and
-// both runs must write the same bytes, so it does nothing time-dependent:
-// the same repository always hands in the same output.
+// Tradewind Courier — a hand-in program for the make.fun best flight game
+// bounty (Node 22, standard library only). The game is this directory's
+// game/ folder: plain static files a desktop browser loads offline
+// (game/index.html and its ES modules, no library, no network request).
+// This program copies game/ and screenshots/ from beside this file to
+// /output and writes /output/dossier.json, the summary the judge reads,
+// with the vendored make.fun library.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
@@ -14,65 +12,47 @@
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
 
-// The repository root is the directory this file sits in.
-const repoRoot = new URL('.', import.meta.url).pathname;
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const here = fileURLToPath(new URL('.', import.meta.url));
+const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-// The scorer's own caps, as the kit's gate states them: the game stays
-// under 993 files and 48 MiB, screenshots stay at 4 files of 256 KiB each,
-// and the dossier text stays under 160 KiB.
-const DOSSIER_LIMITS = {
-  text_max_bytes: 163840,
-  screenshots: { max: 4, max_bytes: 262144 },
-  game_max_files: 993,
-  game_max_bytes: 50331648,
-  game_path_max_bytes: 1000,
-};
+mkdirSync(out, { recursive: true });
+cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
+mkdirSync(join(out, 'screenshots'), { recursive: true });
+if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-function fail(message) {
-  console.error(`Skyline Cargo hand-in refused: ${message}`);
-  process.exit(1);
+// Pre-flight: fail loudly on an incomplete entry instead of writing a
+// dossier the scorer would refuse — a missing game/index.html, fewer
+// than 3 or more than 4 screenshots, or a screenshot over the 256 KiB
+// cap. buildDossier would refuse these too, but only after the copy;
+// catching them here names the broken piece.
+if (!existsSync(join(out, 'game', 'index.html'))) {
+  throw new Error('game/index.html missing — nothing to hand in');
 }
-
-function countGameEntries(dir, seen) {
-  let total = 0;
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    const info = statSync(path);
-    total += 1;
-    if (info.isDirectory()) total += countGameEntries(path, seen);
-  }
-  return total;
-}
-
-mkdirSync(outDir, { recursive: true });
-
-// game/ first: the whole playable game, exactly as it ships.
-const gameDir = join(repoRoot, 'game');
-if (!existsSync(gameDir)) fail('game/ is missing from the repository');
-const gameEntries = countGameEntries(gameDir);
-if (gameEntries > DOSSIER_LIMITS.game_max_files) {
-  fail(`game/ holds ${gameEntries} entries, over the 993 cap`);
-}
-cpSync(gameDir, join(outDir, 'game'), { recursive: true });
-
-// screenshots/ next: 3 or 4 real renders of the game's own code, the first
-// by name the cover. The gate refuses anything else.
-const shotsDir = join(repoRoot, 'screenshots');
-if (!existsSync(shotsDir)) fail('screenshots/ is missing from the repository');
-const shots = readdirSync(shotsDir).filter((name) => !name.startsWith('.'));
+const shots = readdirSync(join(out, 'screenshots'))
+  .filter((f) => /\.(png|jpe?g)$/i.test(f))
+  .sort();
 if (shots.length < 3 || shots.length > 4) {
-  fail(`screenshots/ holds ${shots.length} images, need 3 or 4`);
+  throw new Error(`expected 3-4 screenshots, found ${shots.length}: ${shots.join(', ')}`);
 }
-mkdirSync(join(outDir, 'screenshots'), { recursive: true });
-cpSync(shotsDir, join(outDir, 'screenshots'), { recursive: true });
+for (const shot of shots) {
+  const size = statSync(join(out, 'screenshots', shot)).size;
+  if (size > 262144) throw new Error(`screenshot ${shot} is ${size} bytes, over the 256 KiB cap`);
+}
 
-// The dossier last: built from the copied files, byte for byte what the
-// gate rebuilds with the same library.
-writeFileSync(join(outDir, 'dossier.json'), buildDossier(outDir, DOSSIER_LIMITS));
-
-console.log(
-  `Skyline Cargo handed in: ${gameEntries} game entries, ${shots.length} screenshots, dossier written.`,
+// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
+// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game
+// files, in all, or a path under game/ over 1000 bytes: game/ counts beside /output's own 1000-entry cap, its
+// screenshots/ and dossier.json).
+writeFileSync(
+  join(out, 'dossier.json'),
+  buildDossier(out, {
+    text_max_bytes: 163840,
+    screenshots: { max: 4, max_bytes: 262144 },
+    game_max_files: 993,
+    game_max_bytes: 50331648,
+    game_path_max_bytes: 1000,
+  }),
 );

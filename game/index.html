@@ -1,63 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skyline Cargo — Island Airlift</title>
-<link rel="stylesheet" href="css/style.css">
+<title>Tradewind Courier</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="stage">
-  <canvas id="game" width="1280" height="800"></canvas>
-
-  <div id="overlay">
-    <div id="menu-screen" class="screen">
-      <p class="kicker">SKYLINE CARGO</p>
-      <h1>Island Airlift</h1>
-      <p class="subtitle">Fly the lagoon chain. Mind the fuel. Land her soft.</p>
-      <div class="missions">
-        <button class="mission-card" data-mission="rings">
-          <span class="mission-name">Ring Run</span>
-          <span class="mission-desc">Twelve gates over the lagoon. Beat the clock, mind the fuel.</span>
-        </button>
-        <button class="mission-card" data-mission="landing">
-          <span class="mission-name">Island Landing</span>
-          <span class="mission-desc">Cross the chain and put her down soft on the far strip.</span>
-        </button>
-        <button class="mission-card" data-mission="rescue">
-          <span class="mission-name">Storm Rescue</span>
-          <span class="mission-desc">A pilot is down on Gull Rock. Drop the crate, fight the crosswind.</span>
-        </button>
-      </div>
-      <p class="controls">Fly: Arrow keys or WASD &middot; Throttle: Shift / Ctrl &middot; Brake: Space
-        &middot; Drop crate: C &middot; Pause: P &middot; Mute: M &middot; Mouse drag banks too</p>
-      <p class="foot">An original game: its own islands, aircraft, missions and sounds. No network, no account, nothing to install.</p>
-    </div>
-
-    <div id="briefing-screen" class="screen hidden">
-      <p class="kicker">MISSION BRIEFING</p>
-      <h2 id="brief-title">Ring Run</h2>
-      <p id="brief-tagline" class="subtitle"></p>
-      <p id="brief-text" class="brief-text"></p>
-      <div class="brief-buttons">
-        <button id="start-button" class="primary">Start sortie</button>
-        <button id="back-button">Back</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="end-panel" class="hidden">
-    <h2 id="end-title">Sortie over</h2>
-    <p id="end-medal" class="medal"></p>
-    <ul id="end-lines"></ul>
-    <div class="brief-buttons">
-      <button id="restart-button" class="primary">Fly again</button>
-      <button id="menu-button">Missions</button>
-    </div>
-  </div>
-
-  <button id="pause-button" title="Pause (P)">II</button>
-</div>
-<script type="module" src="js/main.js"></script>
+<canvas id="game"></canvas>
+<div id="hint">Tradewind Courier — loading…</div>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

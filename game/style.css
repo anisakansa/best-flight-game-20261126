@@ -1,0 +1,28 @@
+/* Tradewind Courier: full-screen canvas, nothing else on the page. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0a1c28;
+}
+
+#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+}
+
+#hint {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  color: rgba(220, 238, 245, 0.55);
+  font: 12px monospace, sans-serif;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  user-select: none;
+}
